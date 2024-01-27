@@ -1,13 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <vector>
-//#include <matplotlibcpp.h>
 #include "Public/ComputerSimulationAssignment.h"
-/* run this program using the console pauser or add your own getch,
-system("pause") or input loop */
+#include <iostream>
+#include <math.h>
+// #include <matplotlibcpp.h>
+#include <random>
+#include <vector>
 
-
-//namespace plt = matplotlibcpp;
+using namespace std;
+// namespace plt = matplotlibcpp;
+unsigned int K = 2;
 
 int main(int argc, char* argv[])
 {
@@ -28,8 +28,11 @@ int main(int argc, char* argv[])
     double u;                   // Utilization
     double l;                   // Mean number in the system
     double w;                   // Mean waiting time
-    // vector<double> time_points, mean_customers;
+    bool inService[K];          // Flags to indicate if a customer is in service
     //
+    // Initialize flags
+    for (int i = 0; i < K; ++i)
+        inService[i] = false;
     // Main simulation loop
     while (time < end_time)
     {
@@ -38,13 +41,31 @@ int main(int argc, char* argv[])
             time = t1;
             s += n * (time - tn); // Update area under "s" curve
             n++;
-            tn = time; // tn = "last event time" for next event
+            tn = time; // tn = "last event time" for the next event
             t1 = time + dist.triangularDistribution(0,Ta,Ta/2);
-            if (n == 1)
+            // Check if there is room for the arriving customer
+            if (n <= K)
             {
-                tb = time; // Set "last start of busy time"
-                t2 = time + dist.triangularDistribution(0,Ts,Ts/2);
-                cout<<t2<<endl;
+                if (n == 1)
+                {
+                    tb = time; // Set "last start of busy time"
+                    int i;
+                    for (i = 0; i < K; ++i)
+                    {
+                        if (!inService[i])
+                        {
+                            inService[i] = true;
+                            break;
+                        }
+                    }
+                    t2 = time + dist.triangularDistribution(0,Ts,Ts/2);
+                }
+            }
+            else
+            {
+                // Reject the customer, as the system is full
+                t1 = SIM_TIME;
+                cout << "Out of limits, exiting arrival process" << endl;
             }
         }
         else // *** Event #2 (departure) ***
@@ -52,8 +73,19 @@ int main(int argc, char* argv[])
             time = t2;
             s = s + n * (time - tn); // Update area under "s" curve
             n--;
-            tn = time; // tn = "last event time" for next event
+            tn = time; // tn = "last event time" for the next event
             c++;       // Increment number of completions
+            // Find the departing customer
+            int i;
+            for (i = 0; i < K; ++i)
+            {
+                if (inService[i])
+                {
+                    inService[i] = false;
+                    break;
+                }
+            }
+            // If there are still customers in the system, schedule the next departure
             if (n > 0)
                 t2 = time + dist.expntl(Ts);
             else
@@ -87,13 +119,10 @@ int main(int argc, char* argv[])
     printf("= Mean residence time = %f sec \n", w);
     printf("=============================================================== \n");
     //
-
-    // plt::figure_size(1280, 768);
-    // plt::plot(time_points, mean_customers);
-    // plt::title("Mean Number of Customers over Time");
-    // plt::xlabel("Time");
-    // plt::ylabel("Mean Number of Customers");
-    // plt::show();
-
     return 0;
 }
+
+// g++ ComputerSimulationAssignment.cpp -o part1 -I C:\Python312\include -I
+// include -I
+// C:\Users\oskon\AppData\Roaming\Python\Python312\site-packages\numpy\core\include
+// -L C:\Python312\libs -lpython312
