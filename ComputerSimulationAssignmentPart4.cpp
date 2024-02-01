@@ -1,109 +1,95 @@
-#include "Public/ComputerSimulationAssignment.h"
 #include <iostream>
-#include <math.h>
-// #include <matplotlibcpp.h>
-#include <random>
 #include <vector>
+#include "Public/ComputerSimulationAssignment.h"
 
 using namespace std;
-// namespace plt = matplotlibcpp;
-unsigned int K = 2;
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
     Distribution dist;
-    double end_time = SIM_TIME; // Total time to simulate
-    double Ta = ARR_TIME;       // Mean time between arrivals
-    double Ts = SERV_TIME;      // Mean service time
-    double time = 0.0;          // Simulation time
-    double t1 = 0.0;            // Time for next event #1 (arrival)
-    double t2 = SIM_TIME;       // Time for next event #2 (departure)
-    unsigned int n = 0;         // Number of customers in the system
-    unsigned int c = 0;         // Number of service completions
-    double b = 0.0;             // Total busy time
-    double s = 0.0;             // Area of number of customers in system
-    double tn = time;           // Variable for "last event time"
-    double tb;                  // Variable for "last start of busy time"
-    double x;                   // Throughput
-    double u;                   // Utilization
-    double l;                   // Mean number in the system
-    double w;                   // Mean waiting time
-    bool inService[K];          // Flags to indicate if a customer is in service
-    //
-    // Initialize flags
-    for (int i = 0; i < K; ++i)
-        inService[i] = false;
-    // Main simulation loop
-    while (time < end_time)
-    {
-        if (t1 < t2) // *** Event #1 (arrival) ***
-        {
+    const int NUM_SERVERS = 2;      // Number of servers
+
+    double end_time = SIM_TIME;
+    double Ta = ARR_TIME;
+    double Ts = SERV_TIME;
+    double time = 0.0;
+    double t1 = 0.0;
+    double t2 = SIM_TIME;
+    unsigned int n = 0;
+    unsigned int c = 0;
+    double b = 0.0;
+    double s = 0.0;
+    double tn = time;
+    double tb;
+    double x;
+    double u;
+    double l;
+    double w;
+    
+    vector<bool> inService(NUM_SERVERS, false); // Flags to indicate if a server is in service
+
+    while (time < end_time) {
+        if (t1 < t2) { // Event #1 (arrival)
             time = t1;
-            s += n * (time - tn); // Update area under "s" curve
+            s += n * (time - tn);
             n++;
-            tn = time; // tn = "last event time" for the next event
-            t1 = time + dist.triangularDistribution(0,Ta,Ta/2);
-            // Check if there is room for the arriving customer
-            if (n <= K)
-            {
-                if (n == 1)
-                {
-                    tb = time; // Set "last start of busy time"
-                    int i;
-                    for (i = 0; i < K; ++i)
-                    {
-                        if (!inService[i])
-                        {
-                            inService[i] = true;
-                            break;
-                        }
-                    }
-                    t2 = time + dist.triangularDistribution(0,Ts,Ts/2);
+            tn = time;
+
+            // Check if there is an available server
+            bool serverAvailable = false;
+            for (int i = 0; i < NUM_SERVERS; ++i) {
+                if (!inService[i]) {
+                    inService[i] = true; // Assign the customer to the server
+                    serverAvailable = true;
+                    break;
                 }
             }
-            else
-            {
-                // Reject the customer, as the system is full
-                t1 = SIM_TIME;
-                cout << "Out of limits, exiting arrival process" << endl;
+
+            if (serverAvailable) {
+                if (n == 1) {
+                    tb = time;
+                    t2 = time + dist.expntl(Ts);
+                    cout << t2 << endl;
+                }
+            } else {
+                // Reject the customer if no server is available
+                cout << "All servers busy, exiting arrival process" << endl;
             }
-        }
-        else // *** Event #2 (departure) ***
-        {
+
+            t1 = time + dist.expntl(Ta);
+        } else { // Event #2 (departure)
             time = t2;
-            s = s + n * (time - tn); // Update area under "s" curve
+            s = s + n * (time - tn);
             n--;
-            tn = time; // tn = "last event time" for the next event
-            c++;       // Increment number of completions
-            // Find the departing customer
+
+            // Find the departing server
             int i;
-            for (i = 0; i < K; ++i)
-            {
-                if (inService[i])
-                {
+            for (i = 0; i < NUM_SERVERS; ++i) {
+                if (inService[i]) {
                     inService[i] = false;
                     break;
                 }
             }
-            // If there are still customers in the system, schedule the next departure
-            if (n > 0)
-                t2 = time + dist.expntl(Ts);
-            else
-            {
+
+            c++;
+            if (n > 0) {
+                t2 = time + dist.expntl(Ts); // Schedule the next departure
+            } else {
                 t2 = SIM_TIME;
-                b = b + time - tb; // Update busy time sum if empty
+                b = b + time - tb;
             }
+
+            tn = time; // tn = "last event time" for next event
         }
     }
-    //
-    // Compute outputs
-    x = c / time; // Compute throughput rate
-    u = b / time; // Compute server utilization
-    l = s / time; // Compute mean number in system
-    w = l / x;    // Compute mean residence or system time
+
+    x = c / time;
+    u = b / (NUM_SERVERS * time);
+    l = s / time;
+    w = l / x;
+
     // Output results
     printf("=============================================================== \n");
-    printf("= *** Results from M/M/1 simulation *** = \n");
+    printf("= *** Results from M/M/%d simulation *** = \n", NUM_SERVERS);
     printf("=============================================================== \n");
     printf("= Total simulated time = %3.4f sec \n", end_time);
     printf("=============================================================== \n");
@@ -118,11 +104,6 @@ int main(int argc, char* argv[])
     printf("= Mean number in system = %f cust \n", l);
     printf("= Mean residence time = %f sec \n", w);
     printf("=============================================================== \n");
-    //
+
     return 0;
 }
-
-// g++ ComputerSimulationAssignment.cpp -o part1 -I C:\Python312\include -I
-// include -I
-// C:\Users\oskon\AppData\Roaming\Python\Python312\site-packages\numpy\core\include
-// -L C:\Python312\libs -lpython312

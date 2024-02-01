@@ -7,7 +7,7 @@
 
 using namespace std;
 // namespace plt = matplotlibcpp;
-unsigned int K = 2;
+unsigned int K = 5;
 
 int main(int argc, char* argv[])
 {
@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
     double l;                   // Mean number in the system
     double w;                   // Mean waiting time
     bool inService[K];          // Flags to indicate if a customer is in service
-    //
+
     // Initialize flags
     for (int i = 0; i < K; ++i)
         inService[i] = false;
@@ -37,12 +37,12 @@ int main(int argc, char* argv[])
     while (time < end_time)
     {
         if (t1 < t2) // *** Event #1 (arrival) ***
-        {
+        {   
             time = t1;
             s += n * (time - tn); // Update area under "s" curve
             n++;
             tn = time; // tn = "last event time" for the next event
-            t1 = time + dist.triangularDistribution(0,Ta,Ta/2);
+            t1 = time + dist.poisson(Ta);
             // Check if there is room for the arriving customer
             if (n <= K)
             {
@@ -58,13 +58,12 @@ int main(int argc, char* argv[])
                             break;
                         }
                     }
-                    t2 = time + dist.triangularDistribution(0,Ts,Ts/2);
+                    t2 = time + dist.poisson(Ts);
                 }
             }
             else
             {
                 // Reject the customer, as the system is full
-                t1 = SIM_TIME;
                 cout << "Out of limits, exiting arrival process" << endl;
             }
         }
@@ -75,7 +74,6 @@ int main(int argc, char* argv[])
             n--;
             tn = time; // tn = "last event time" for the next event
             c++;       // Increment number of completions
-            // Find the departing customer
             int i;
             for (i = 0; i < K; ++i)
             {
@@ -103,7 +101,7 @@ int main(int argc, char* argv[])
     w = l / x;    // Compute mean residence or system time
     // Output results
     printf("=============================================================== \n");
-    printf("= *** Results from M/M/1 simulation *** = \n");
+    printf("= *** Results from M/M/1/k simulation *** = \n");
     printf("=============================================================== \n");
     printf("= Total simulated time = %3.4f sec \n", end_time);
     printf("=============================================================== \n");

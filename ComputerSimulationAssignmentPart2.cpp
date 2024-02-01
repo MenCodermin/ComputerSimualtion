@@ -1,13 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
-//#include <matplotlibcpp.h>
 #include "Public/ComputerSimulationAssignment.h"
-/* run this program using the console pauser or add your own getch,
-system("pause") or input loop */
 
-
-//namespace plt = matplotlibcpp;
+using namespace std;
 
 int main(int argc, char* argv[])
 {
@@ -28,7 +24,6 @@ int main(int argc, char* argv[])
     double u;                   // Utilization
     double l;                   // Mean number in the system
     double w;                   // Mean waiting time
-    // vector<double> time_points, mean_customers;
     //
     // Main simulation loop
     while (time < end_time)
@@ -44,7 +39,6 @@ int main(int argc, char* argv[])
             {
                 tb = time; // Set "last start of busy time"
                 t2 = time + dist.triangularDistribution(0,Ts,Ts/2);
-                cout<<t2<<endl;
             }
         }
         else // *** Event #2 (departure) ***
@@ -55,13 +49,14 @@ int main(int argc, char* argv[])
             tn = time; // tn = "last event time" for next event
             c++;       // Increment number of completions
             if (n > 0)
-                t2 = time + dist.expntl(Ts);
+                t2 = time + dist.triangularDistribution(0,Ts,Ts/2);
             else
             {
                 t2 = SIM_TIME;
                 b = b + time - tb; // Update busy time sum if empty
             }
         }
+
     }
     //
     // Compute outputs
@@ -87,13 +82,6 @@ int main(int argc, char* argv[])
     printf("= Mean residence time = %f sec \n", w);
     printf("=============================================================== \n");
     //
-
-    // plt::figure_size(1280, 768);
-    // plt::plot(time_points, mean_customers);
-    // plt::title("Mean Number of Customers over Time");
-    // plt::xlabel("Time");
-    // plt::ylabel("Mean Number of Customers");
-    // plt::show();
 
     return 0;
 }

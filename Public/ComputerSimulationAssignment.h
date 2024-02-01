@@ -8,7 +8,7 @@
 
 using namespace std;
 
-#define SIM_TIME 1.0e2 // Simulation time
+#define SIM_TIME 1.0e6 // Simulation time
 #define ARR_TIME 1.25   // Mean time between arrivals
 #define SERV_TIME 1.00  // Mean service time
 
@@ -22,6 +22,7 @@ public:
     double theoreticalResponseTime(double lambda, double mu);
     double triangularDistribution(double minVal, double maxVal, double mode);
     double expntl(double x);
+    int poisson(double lambda);
 
 };
 
@@ -65,4 +66,14 @@ double Distribution::expntl(double x)
     }
     while ((z == 0) || (z == 1));
     return(-x * log(z));
+}
+
+int Distribution::poisson(double lambda)
+{
+    random_device rd;
+    mt19937 gen(rd());
+
+    // Poisson-distributed value using the exponential distribution
+    poisson_distribution<int> poissonDist(lambda);
+    return poissonDist(gen);
 }
