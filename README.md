@@ -10,4 +10,4 @@ g++ YourProjectName.cpp -o Simulation -I "Python folder\include" -I include -I "
 
 Remember: use your version of Python. In my case I just downloaded Pyhton to C disk and found numpy in my Roaming folder.
 
-Good Luck, stranger!
+Good Luck, Stranger!
