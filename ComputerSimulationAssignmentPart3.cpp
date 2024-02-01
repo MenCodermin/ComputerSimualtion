@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
             s += n * (time - tn); // Update area under "s" curve
             n++;
             tn = time; // tn = "last event time" for the next event
-            t1 = time + dist.poisson(Ta);
+            t1 = time + dist.triangularDistribution(0,Ta,Ta/2);
             // Check if there is room for the arriving customer
             if (n <= K)
             {
@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
                             break;
                         }
                     }
-                    t2 = time + dist.poisson(Ts);
+                    t2 = time + dist.triangularDistribution(0,Ts,Ts/2);
                 }
             }
             else

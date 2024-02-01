@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
             if (serverAvailable) {
                 if (n == 1) {
                     tb = time;
-                    t2 = time + dist.expntl(Ts);
+                    t2 = time + dist.triangularDistribution(0,Ts,Ts/2);
                     cout << t2 << endl;
                 }
             } else {
@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
                 cout << "All servers busy, exiting arrival process" << endl;
             }
 
-            t1 = time + dist.expntl(Ta);
+            t1 = time + dist.triangularDistribution(0,Ta,Ta/2);
         } else { // Event #2 (departure)
             time = t2;
             s = s + n * (time - tn);
